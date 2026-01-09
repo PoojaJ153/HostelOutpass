@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI";
+}
+body{
+    background:#f9fafb;
+}
+
+/* NAVBAR */
+.navbar{
+    height:64px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 32px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.08);
+}
+.navbar h2{
+    color:#ca8a04;
+    font-size:20px;
+}
+.navbar button{
+    background:#facc15;
+    border:none;
+    padding:6px 14px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:13px;
+}
+
+/* MAIN */
+.main{
+    padding:32px;
+}
+
+/* PROFILE CARD */
+.profile-card{
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+.profile-card h1{
+    font-size:22px;
+}
+.role{
+    font-size:14px;
+    color:#374151;
+    font-weight:600;
+    margin-top:4px;
+}
+.hostel{
+    font-size:13px;
+    color:#6b7280;
+}
+.profile-actions button{
+    background:#facc15;
+    border:none;
+    padding:6px 14px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:13px;
+}
+
+/* TABLE BOX */
+.table-box{
+    background:#fff;
+    padding:24px;
+    border-radius:14px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    margin-top:24px;
+}
+.table-box h3{
+    margin-bottom:6px;
+}
+.summary{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:12px;
+}
+
+/* FILTERS */
+.filters{
+    display:flex;
+    gap:10px;
+    margin-bottom:12px;
+}
+.filter-btn{
+    padding:6px 14px;
+    border-radius:20px;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    font-size:13px;
+    cursor:pointer;
+}
+.filter-btn.active{
+    background:#facc15;
+    font-weight:700;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    padding:12px;
+    font-size:14px;
+}
+th{
+    text-align:left;
+    color:#ca8a04;
+}
+tr:hover{
+    background:#f9fafb;
+}
+
+.reason{
+    font-weight:600;
+    color:#111827;
+}
+
+/* STATUS */
+.status{
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+.Pending{
+    background:#fde68a;
+    color:#92400e;
+}
+.Approved{
+    background:#bbf7d0;
+    color:#166534;
+}
+.Rejected{
+    background:#fecaca;
+    color:#991b1b;
+}
+
+/* EMPTY */
+.empty{
+    text-align:center;
+    color:#9ca3af;
+    padding:30px;
+    font-size:14px;
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h2>Hostel Outpass System</h2>
+    <button onclick="goProfile()">⬅ Profile</button>
+</div>
+
+<div class="main">
+
+<!-- PROFILE -->
+<div class="profile-card">
+    <div>
+        <h1>Pooja J</h1>
+        <div class="role">CSE Student</div>
+        <div class="hostel">KSR Ladies Hostel</div>
+    </div>
+    <div class="profile-actions">
+        <button onclick="goApply()">➕ Apply Outpass</button>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-box">
+    <h3>My Outpass Requests</h3>
+    <div class="summary" id="summaryText"></div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('All',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('Pending',this)">Pending</button>
+        <button class="filter-btn" onclick="setFilter('Approved',this)">Approved</button>
+        <button class="filter-btn" onclick="setFilter('Rejected',this)">Rejected</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Reason</th>
+                <th>Out Date</th>
+                <th>In Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="empty" id="emptyMsg">No outpass requests found</div>
+</div>
+
+</div>
+
+<script>
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "hosteloutpass-316b3.firebaseapp.com",
+  projectId: "hosteloutpass-316b3",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* NAVIGATION */
+function goApply(){ location.href="apply.html"; }
+function goProfile(){ location.href="profile.html"; }
+
+/* DATA */
+let allData=[];
+let currentFilter="All";
+
+function setFilter(filter,btn){
+    currentFilter=filter;
+    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+}
+
+function render(){
+    tableBody.innerHTML="";
+    let filtered = allData.filter(o => currentFilter==="All" || o.status===currentFilter);
+
+    emptyMsg.style.display = filtered.length===0 ? "block" : "none";
+
+    filtered.forEach(o=>{
+        tableBody.innerHTML += `
+        <tr>
+            <td class="reason">${o.reason}</td>
+            <td>${o.outDate}</td>
+            <td>${o.inDate}</td>
+            <td><span class="status ${o.status}">${o.status}</span></td>
+        </tr>`;
+    });
+
+    const p = allData.filter(o=>o.status==="Pending").length;
+    const a = allData.filter(o=>o.status==="Approved").length;
+    const r = allData.filter(o=>o.status==="Rejected").length;
+
+    summaryText.innerText = `${p} Pending • ${a} Approved • ${r} Rejected`;
+}
+
+
+/* FIRESTORE LISTENER */
+db.collection("outpasses")
+.orderBy("createdAt","desc")
+.onSnapshot(snapshot=>{
+    allData=[];
+    snapshot.forEach(doc=> allData.push(doc.data()));
+    render();
+});
+</script>
+
+</body>
+</html>

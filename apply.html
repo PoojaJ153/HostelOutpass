@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Apply Outpass</title>
+
+<!-- 🔥 Firebase SDK v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+/* 🔒 YOUR ORIGINAL CSS – NOT TOUCHED */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",sans-serif;
+}
+body{background:#f9fafb;}
+.navbar{
+    height:64px;background:#ffffff;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+.navbar h3{color:#ca8a04;}
+.navbar button{
+    background:#facc15;border:none;padding:6px 14px;
+    border-radius:6px;font-weight:700;cursor:pointer;
+}
+.container{
+    min-height:calc(100vh - 64px);
+    display:flex;align-items:center;justify-content:center;
+}
+.card{
+    background:#ffffff;width:420px;padding:28px;
+    border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.08);
+}
+.card h2{text-align:center;color:#ca8a04;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+label{display:block;margin-bottom:6px;font-weight:600;}
+input,select,textarea{
+    width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;
+}
+textarea{resize:none;height:90px;}
+.btn-group{display:flex;gap:12px;margin-top:22px;}
+.btn{
+    flex:1;padding:10px;border:none;border-radius:8px;
+    font-weight:700;cursor:pointer;
+}
+.submit{background:#facc15;}
+.cancel{background:#e5e7eb;}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <h3>Apply Outpass</h3>
+    <button onclick="goBack()">Dashboard</button>
+</div>
+
+<div class="container">
+<div class="card">
+<h2>Outpass Request</h2>
+
+<div class="form-group">
+<label>Reason</label>
+<select id="reasonInput">
+    <option value="">-- Select Reason --</option>
+    <option>Weekend Home Visit</option>
+    <option>Family Function</option>
+    <option>Medical Emergency</option>
+    <option>Personal Work</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Out Date</label>
+<input type="date" id="outDateInput">
+</div>
+
+<div class="form-group">
+<label>In Date</label>
+<input type="date" id="inDateInput">
+</div>
+
+<div class="form-group">
+<label>Leave Details</label>
+<textarea id="detailsInput"></textarea>
+</div>
+
+<div class="btn-group">
+<button class="btn submit" onclick="submitOutpass()">Submit</button>
+<button class="btn cancel" onclick="goBack()">Cancel</button>
+</div>
+
+</div>
+</div>
+
+<script>
+/* 🔥 Firebase Config (YOUR PROJECT) */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "hosteloutpass-316b3.firebaseapp.com",
+  projectId: "hosteloutpass-316b3",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function goBack(){
+    location.href="dashboard.html";
+}
+
+function submitOutpass(){
+    const reason   = reasonInput.value;
+    const outDate  = outDateInput.value;
+    const inDate   = inDateInput.value;
+    const details  = detailsInput.value;
+
+    if(reason==="" || outDate==="" || inDate===""){
+        alert("Please fill all required fields");
+        return;
+    }
+
+    db.collection("outpasses").add({
+        reason,
+        outDate,
+        inDate,
+        details,
+        status:"Pending",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(()=>{
+        alert("Outpass Applied Successfully ✅");
+        goBack();
+    })
+    .catch(err=>alert(err.message));
+}
+</script>
+
+</body>
+</html>

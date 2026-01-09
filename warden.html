@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Warden Panel</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+body{
+    font-family:"Segoe UI";
+    background:#f9fafb;
+    padding:30px;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+h2{color:#ca8a04;}
+
+.back-btn{
+    background:#facc15;
+    border:none;
+    padding:6px 14px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:13px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    border-radius:12px;
+    overflow:hidden;
+}
+th,td{padding:12px;font-size:14px;}
+th{background:#fde68a;text-align:left;}
+button{
+    padding:6px 10px;
+    border:none;
+    border-radius:6px;
+    font-weight:600;
+    cursor:pointer;
+}
+.approve{background:#22c55e;color:#fff;}
+.reject{background:#ef4444;color:#fff;}
+</style>
+</head>
+
+<body>
+
+<!-- 🔙 HEADER WITH BACK BUTTON -->
+<div class="header">
+    <h2>🛡️ Warden Approval Panel</h2>
+    <button class="back-btn" onclick="goBack()">Logout</button>
+</div>
+
+<table>
+<thead>
+<tr>
+    <th>Student</th>
+    <th>Reason</th>
+    <th>Out</th>
+    <th>In</th>
+    <th>Status</th>
+    <th>Action</th>
+</tr>
+</thead>
+<tbody id="wardenTable"></tbody>
+</table>
+
+<script>
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "hosteloutpass-316b3.firebaseapp.com",
+  projectId: "hosteloutpass-316b3",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const table = document.getElementById("wardenTable");
+
+db.collection("outpasses")
+.where("status","==","Pending")
+.onSnapshot(snapshot=>{
+    table.innerHTML="";
+    snapshot.forEach(doc=>{
+        const o = doc.data();
+        table.innerHTML += `
+        <tr>
+            <td>Pooja J</td>
+            <td>${o.reason}</td>
+            <td>${o.outDate}</td>
+            <td>${o.inDate}</td>
+            <td>${o.status}</td>
+            <td>
+                <button class="approve" onclick="updateStatus('${doc.id}','Approved')">Approve</button>
+                <button class="reject" onclick="updateStatus('${doc.id}','Rejected')">Reject</button>
+            </td>
+        </tr>`;
+    });
+});
+
+function updateStatus(id,status){
+    db.collection("outpasses").doc(id).update({status})
+    .then(()=>alert("Updated Successfully ✅"));
+}
+
+/* 🔙 BACK TO LOGIN */
+function goBack(){
+    window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hostel Outpass Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+        }
+
+        .left {
+            width: 45%;
+            padding: 80px 70px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .left h2 {
+            color: #0f2027;
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+
+        .left h4 {
+            color: #666;
+            margin-bottom: 45px;
+            font-weight: 500;
+        }
+
+        .left label {
+            display: block;
+            margin: 18px 0 6px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .left input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .left input:focus {
+            outline: none;
+            border-color: #c9a227;
+            box-shadow: 0 0 6px rgba(201,162,39,0.4);
+        }
+
+        .left button {
+            width: 100%;
+            margin-top: 40px;
+            padding: 15px;
+            background: linear-gradient(90deg, #c9a227, #ffd700);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .right {
+            width: 55%;
+            background-image: url("ksrhostel.jpg");
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .right::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom right,
+                rgba(0,0,0,0.85),
+                rgba(0,0,0,0.55)
+            );
+        }
+
+        .right-content {
+            position: relative;
+            height: 100%;
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .right-content h1 {
+            font-size: 46px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin-bottom: 18px;
+        }
+
+        .right-content p {
+            font-size: 19px;
+            line-height: 1.8;
+            max-width: 450px;
+        }
+
+        .tag {
+            margin-top: 35px;
+            padding: 14px 26px;
+            background: rgba(255,215,0,0.25);
+            border-left: 6px solid #ffd700;
+            font-weight: bold;
+            letter-spacing: 1.2px;
+            width: fit-content;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="left">
+        <h2>KSR WOMENS HOSTEL</h2>
+        <h4>Hostel Outpass Management</h4>
+
+        <form onsubmit="login(event)">
+            <label>Email</label>
+            <input type="email" id="email" required>
+
+            <label>Password</label>
+            <input type="password" id="password" required>
+
+            <button type="submit">LOGIN</button>
+        </form>
+    </div>
+
+    <div class="right">
+        <div class="right-content">
+            <h1>KSR HOSTEL</h1>
+            <p>
+                Secure, transparent and smart digital outpass
+                management system for a disciplined campus life.
+            </p>
+            <div class="tag">DISCIPLINE • SAFETY • DIGITAL</div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔥 FIREBASE v9 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD4Ou5ovV0CoQp_QwHK4rnhYkp8IOyaoyA",
+        authDomain: "hosteloutpass-316b3.firebaseapp.com",
+        projectId: "hosteloutpass-316b3",
+        storageBucket: "hosteloutpass-316b3.appspot.com",
+        messagingSenderId: "537926712226",
+        appId: "1:537926712226:web:04b1ccd8d23e38106250fb"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.login = function(e){
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        signInWithEmailAndPassword(auth, email, password)
+        .then(async (userCred) => {
+            const uid = userCred.user.uid;
+
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+
+            if(!snap.exists()){
+                alert("User role not found");
+                return;
+            }
+
+            const role = snap.data().role;
+
+            if(role === "student"){
+                window.location.href = "profile.html";
+            }
+            else if(role === "warden"){
+                window.location.href = "warden.html";
+            }
+            else{
+                alert("Invalid role");
+            }
+        })
+        .catch(err => {
+            alert(err.message);
+        });
+    }
+</script>
+
+</body>
+</html>
